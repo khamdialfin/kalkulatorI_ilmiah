@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Kalkulator Ilmiah Pro">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#06b6d4" />
+      <stop offset="1" stop-color="#6366f1" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)" />
+  <rect x="112" y="76" width="288" height="360" rx="44" fill="#0a0d14" opacity="0.92" />
+  <rect x="148" y="118" width="216" height="86" rx="20" fill="#38bdf8" opacity="0.85" />
+  <g fill="#e2e8f0">
+    <rect x="148" y="240" width="52" height="52" rx="14" />
+    <rect x="230" y="240" width="52" height="52" rx="14" />
+    <rect x="312" y="240" width="52" height="52" rx="14" />
+    <rect x="148" y="316" width="52" height="52" rx="14" />
+    <rect x="230" y="316" width="52" height="52" rx="14" />
+    <rect x="148" y="392" width="52" height="52" rx="14" />
+    <rect x="230" y="392" width="52" height="52" rx="14" />
+  </g>
+  <rect x="312" y="316" width="52" height="128" rx="14" fill="#22d3ee" />
+</svg>

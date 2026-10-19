@@ -1,0 +1,340 @@
+﻿<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Kalkulator Ilmiah Modern dengan UI/UX Glassmorphism Premium, kalkulasi presisi tinggi, riwayat perhitungan, dan pembuat grafik fungsi 2D interaktif. Responsif untuk HP, tablet, dan desktop.">
+    <meta name="keywords" content="kalkulator ilmiah, scientific calculator, web calculator, grafik fungsi, math calculator, responsive">
+    <meta name="theme-color" content="#0a0d14">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Kalkulator Ilmiah">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <title>Kalkulator Ilmiah Pro â€” Visual & Presisi Tinggi</title>
+    <script>
+        /* Sinkronkan theme-color statis dengan tema tersimpan sebelum CSS dimuat (anti-flash) */
+        (function () {
+            try {
+                var saved = localStorage.getItem('kalkulator_theme');
+                if (saved) document.documentElement.setAttribute('data-theme', saved);
+                var dark = document.documentElement.getAttribute('data-theme') !== 'light';
+                var meta = document.querySelector('meta[name="theme-color"]');
+                if (meta) meta.setAttribute('content', dark ? '#0a0d14' : '#f1f5f9');
+            } catch (e) { /* localStorage tidak tersedia */ }
+        })();
+    </script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Ambient Background Glows -->
+    <div class="ambient-glow glow-1" aria-hidden="true"></div>
+    <div class="ambient-glow glow-2" aria-hidden="true"></div>
+    <div class="ambient-glow glow-3" aria-hidden="true"></div>
+
+    <div class="app-wrapper">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo-group">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="4" y="2" width="16" height="20" rx="3" />
+                        <line x1="8" y1="6" x2="16" y2="6" />
+                        <line x1="8" y1="10" x2="10" y2="10" />
+                        <line x1="14" y1="10" x2="16" y2="10" />
+                        <line x1="8" y1="14" x2="10" y2="14" />
+                        <line x1="14" y1="14" x2="16" y2="14" />
+                        <line x1="8" y1="18" x2="16" y2="18" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="app-title">Kalkulator Ilmiah <span>PRO</span></h1>
+                    <p class="app-subtitle">C++ Core Algorithm & Modern Web Engine</p>
+                </div>
+            </div>
+
+            <!-- Top Controls -->
+            <div class="header-actions">
+                <!-- Sound Toggle -->
+                <button type="button" id="btn-sound-toggle" class="icon-btn" title="Efek Suara Tombol" aria-label="Toggle Sound">
+                    <svg class="icon-sound-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    </svg>
+                    <svg class="icon-sound-off hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        <line x1="23" y1="9" x2="17" y2="15"></line>
+                        <line x1="17" y1="9" x2="23" y2="15"></line>
+                    </svg>
+                </button>
+
+                <!-- Graph View Toggle -->
+                <button type="button" id="btn-graph-toggle" class="header-pill-btn" title="Buka Pembuat Grafik Fungsi" aria-controls="graph-panel" aria-expanded="false">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 3v18h18" />
+                        <path d="m19 9-5 5-4-4-3 3" />
+                    </svg>
+                    <span>Grafik 2D</span>
+                </button>
+
+                <!-- History Toggle -->
+                <button type="button" id="btn-history-toggle" class="header-pill-btn" title="Riwayat Perhitungan" aria-controls="history-drawer" aria-expanded="false">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    <span>Riwayat</span>
+                    <span id="history-badge" class="badge">0</span>
+                </button>
+
+                <!-- Theme Toggle -->
+                <button type="button" id="btn-theme-toggle" class="icon-btn" title="Ubah Tema Gelap/Terang" aria-label="Toggle Theme">
+                    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="icon-sun hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Layout Container -->
+        <main class="main-layout">
+            <!-- Calculator Card -->
+            <section class="calculator-card glass-panel" aria-label="Kalkulator Ilmiah">
+                <!-- Display Section -->
+                <div class="display-container">
+                    <div class="display-top-bar">
+                        <div class="angle-mode-switch">
+                            <button type="button" id="btn-mode-deg" class="mode-tag active" data-mode="deg">DEG</button>
+                            <button type="button" id="btn-mode-rad" class="mode-tag" data-mode="rad">RAD</button>
+                        </div>
+                        <div class="display-indicators">
+                            <span id="indicator-memory" class="indicator-badge hidden">M</span>
+                            <span id="indicator-ans" class="indicator-badge hidden">ANS</span>
+                            <span id="indicator-error" class="indicator-badge error hidden">ERR</span>
+                        </div>
+                    </div>
+
+                    <!-- Formula / Expression Stream -->
+                    <div class="expression-line-wrapper">
+                        <div id="expression-display" class="expression-line" tabindex="0" title="Klik untuk fokus input"></div>
+                    </div>
+
+                    <!-- Primary Live Result Display -->
+                    <div class="result-line-wrapper">
+                        <span class="equals-symbol">=</span>
+                        <div id="result-display" class="result-line">0</div>
+                    </div>
+                </div>
+
+                <!-- Memory Toolbar -->
+                <div class="memory-bar">
+                    <button type="button" class="btn-mem" data-action="mc">MC</button>
+                    <button type="button" class="btn-mem" data-action="mr">MR</button>
+                    <button type="button" class="btn-mem" data-action="m-plus">M+</button>
+                    <button type="button" class="btn-mem" data-action="m-minus">Mâˆ’</button>
+                    <button type="button" class="btn-mem" data-action="ms">MS</button>
+                    <button type="button" class="btn-mem" data-action="copy" title="Salin Hasil">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        <span>Salin</span>
+                    </button>
+                </div>
+
+                <!-- Keypad Matrix -->
+                <div class="keypad-grid">
+                    <!-- Row 1: Advanced Functions -->
+                    <button type="button" class="key key-fn" data-insert="sin(">sin</button>
+                    <button type="button" class="key key-fn" data-insert="cos(">cos</button>
+                    <button type="button" class="key key-fn" data-insert="tan(">tan</button>
+                    <button type="button" class="key key-fn" data-insert="asin(">sinâ»Â¹</button>
+                    <button type="button" class="key key-fn" data-insert="acos(">cosâ»Â¹</button>
+                    <button type="button" class="key key-fn" data-insert="atan(">tanâ»Â¹</button>
+
+                    <!-- Row 2: Powers, Roots, Logs -->
+                    <button type="button" class="key key-fn" data-insert="^2">xÂ²</button>
+                    <button type="button" class="key key-fn" data-insert="^">xÊ¸</button>
+                    <button type="button" class="key key-fn" data-insert="sqrt(">âˆšx</button>
+                    <button type="button" class="key key-fn" data-insert="log(">log</button>
+                    <button type="button" class="key key-fn" data-insert="ln(">ln</button>
+                    <button type="button" class="key key-fn" data-insert="fact(">n!</button>
+
+                    <!-- Row 3: Constants & Brackets -->
+                    <button type="button" class="key key-const" data-insert="pi">Ï€</button>
+                    <button type="button" class="key key-const" data-insert="e">e</button>
+                    <button type="button" class="key key-fn" data-insert="abs(">|x|</button>
+                    <button type="button" class="key key-fn" data-insert="exp(">eË£</button>
+                    <button type="button" class="key key-bracket" data-insert="(">(</button>
+                    <button type="button" class="key key-bracket" data-insert=")">)</button>
+
+                    <!-- Row 4: Controls & Division -->
+                    <button type="button" class="key key-action key-clear" data-action="clear">AC</button>
+                    <button type="button" class="key key-action key-backspace" data-action="backspace" title="Hapus karakter terakhir">âŒ«</button>
+                    <button type="button" class="key key-fn" data-insert="%">%</button>
+                    <button type="button" class="key key-const" data-insert="ans">Ans</button>
+                    <button type="button" class="key key-op" data-insert=" / ">Ã·</button>
+                    <button type="button" class="key key-op" data-insert=" * ">Ã—</button>
+
+                    <!-- Row 5: Numbers 7-9 & Minus -->
+                    <button type="button" class="key key-num" data-insert="7">7</button>
+                    <button type="button" class="key key-num" data-insert="8">8</button>
+                    <button type="button" class="key key-num" data-insert="9">9</button>
+                    <button type="button" class="key key-fn" data-insert="10^">10Ë£</button>
+                    <button type="button" class="key key-fn" data-insert="^(1/3)">Â³âˆšx</button>
+                    <button type="button" class="key key-op" data-insert=" - ">âˆ’</button>
+
+                    <!-- Row 6: Numbers 4-6 & Plus -->
+                    <button type="button" class="key key-num" data-insert="4">4</button>
+                    <button type="button" class="key key-num" data-insert="5">5</button>
+                    <button type="button" class="key key-num" data-insert="6">6</button>
+                    <button type="button" class="key key-fn" data-insert="1/(">1/x</button>
+                    <button type="button" class="key key-fn" data-insert="rand()">rand</button>
+                    <button type="button" class="key key-op" data-insert=" + ">+</button>
+
+                    <!-- Row 7: Numbers 1-3 & Equals -->
+                    <button type="button" class="key key-num" data-insert="1">1</button>
+                    <button type="button" class="key key-num" data-insert="2">2</button>
+                    <button type="button" class="key key-num" data-insert="3">3</button>
+                    <button type="button" class="key key-num" data-insert="0">0</button>
+                    <button type="button" class="key key-num" data-insert=".">.</button>
+                    <button type="button" class="key key-equals" data-action="calculate">=</button>
+                </div>
+
+                <!-- Keyboard shortcuts hints footer -->
+                <div class="card-footer">
+                    <span> Dukungan Keyboard Penuh: <code>0-9</code>, <code>+ - * / ^ %</code>, <code>Enter (=)</code>, <code>Esc (AC)</code>, <code>Backspace</code></span>
+                </div>
+            </section>
+
+            <!-- Graphing Panel (Collapsible / Slideable) -->
+            <section id="graph-panel" class="graph-panel glass-panel sheet hidden" role="dialog" aria-label="Visualisasi Grafik 2D">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 3v18h18" />
+                            <path d="m19 9-5 5-4-4-3 3" />
+                        </svg>
+                        <h2>Pembuat Grafik Fungsi 2D</h2>
+                    </div>
+                    <button type="button" id="btn-close-graph" class="close-btn" title="Tutup Panel Grafik">âœ•</button>
+                </div>
+
+                <div class="graph-controls">
+                    <div class="input-group">
+                        <label for="function-input">f(x) =</label>
+                        <input type="text" id="function-input" value="sin(x) * x" placeholder="Contoh: sin(x), x^2 - 4, cos(2*x)">
+                        <button type="button" id="btn-plot" class="btn-primary">Gambar</button>
+                    </div>
+                    <div class="quick-functions">
+                        <span>Pilihan Cepat:</span>
+                        <button type="button" class="quick-fn-chip" data-fn="sin(x)">sin(x)</button>
+                        <button type="button" class="quick-fn-chip" data-fn="cos(x)">cos(x)</button>
+                        <button type="button" class="quick-fn-chip" data-fn="x^2 - 4">xÂ² - 4</button>
+                        <button type="button" class="quick-fn-chip" data-fn="sqrt(x)">âˆšx</button>
+                        <button type="button" class="quick-fn-chip" data-fn="1/x">1/x</button>
+                        <button type="button" class="quick-fn-chip" data-fn="exp(-x^2/2)">Bell Curve</button>
+                    </div>
+                </div>
+
+                <div class="canvas-container">
+                    <canvas id="graph-canvas" width="600" height="380"></canvas>
+                    <div class="graph-zoom-controls">
+                        <button type="button" id="btn-zoom-in" title="Perbesar">+</button>
+                        <button type="button" id="btn-zoom-out" title="Perkecil">âˆ’</button>
+                        <button type="button" id="btn-reset-view" title="Reset Tampilan">â†º</button>
+                    </div>
+                    <div id="graph-coords" class="graph-coords">x: 0.00, y: 0.00</div>
+                </div>
+            </section>
+
+            <!-- History Drawer Panel -->
+            <aside id="history-drawer" class="history-drawer glass-panel sheet hidden" role="dialog" aria-label="Riwayat Perhitungan">
+                <div class="drawer-header">
+                    <div class="drawer-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <polyline points="12 6 12 12 16 14" />
+                        </svg>
+                        <h2>Riwayat Kalkulasi</h2>
+                    </div>
+                    <div class="drawer-actions">
+                        <button type="button" id="btn-clear-history" class="text-btn" title="Hapus Semua Riwayat">Hapus</button>
+                        <button type="button" id="btn-close-history" class="close-btn" title="Tutup Riwayat">âœ•</button>
+                    </div>
+                </div>
+
+                <div id="history-list" class="history-list">
+                    <div class="history-empty">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p>Belum ada riwayat kalkulasi</p>
+                        <span>Hitung sesuatu untuk melihat riwayat di sini</span>
+                    </div>
+                </div>
+            </aside>
+        </main>
+
+        <!-- Toast Notification for Copy/Errors -->
+        <div id="toast" class="toast" role="alert" aria-live="polite"></div>
+    </div>
+
+    <!-- JavaScript Engine -->
+    <script src="app.js"></script>
+<script>
+    /* TEMP PROBE (dihapus setelah validasi): mengukur overflow & state panel */
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            const hash = location.hash || '';
+            if (hash.indexOf('history') >= 0) document.getElementById('btn-history-toggle').click();
+            if (hash.indexOf('graph') >= 0) document.getElementById('btn-graph-toggle').click();
+            setTimeout(() => {
+                const de = document.documentElement;
+                const q = (s) => document.querySelector(s);
+                const w = (s) => Math.round(q(s).getBoundingClientRect().width);
+                const report = [
+                    'innerW=' + window.innerWidth,
+                    'scrollW=' + de.scrollWidth,
+                    'overflowX=' + (de.scrollWidth > window.innerWidth + 1 ? 'YES' : 'no'),
+                    'cardW=' + w('.calculator-card'),
+                    'keyW=' + w('.key'),
+                    'memW=' + w('.memory-bar'),
+                    'drawerOpen=' + !q('#history-drawer').classList.contains('hidden'),
+                    'graphOpen=' + !q('#graph-panel').classList.contains('hidden'),
+                    'backdropShow=' + (q('.panel-backdrop') ? q('.panel-backdrop').classList.contains('show') : 'missing'),
+                    'noScroll=' + document.body.classList.contains('no-scroll'),
+                    'ariaExp=' + q('#btn-history-toggle').getAttribute('aria-expanded'),
+                    'canvas=' + q('#graph-canvas').width + 'x' + q('#graph-canvas').height
+                ].join(' | ');
+                const d = document.createElement('div');
+                d.id = 'probe-report';
+                d.textContent = '@@@PROBE ' + report + ' PROBE@@@';
+                document.body.appendChild(d);
+            }, 500);
+        }, 300);
+    });
+</script>
+</body>
+</html>
+

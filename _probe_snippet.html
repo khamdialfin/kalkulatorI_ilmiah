@@ -1,0 +1,33 @@
+<script>
+    /* TEMP PROBE (dihapus setelah validasi): mengukur overflow & state panel */
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            const hash = location.hash || '';
+            if (hash.indexOf('history') >= 0) document.getElementById('btn-history-toggle').click();
+            if (hash.indexOf('graph') >= 0) document.getElementById('btn-graph-toggle').click();
+            setTimeout(() => {
+                const de = document.documentElement;
+                const q = (s) => document.querySelector(s);
+                const w = (s) => Math.round(q(s).getBoundingClientRect().width);
+                const report = [
+                    'innerW=' + window.innerWidth,
+                    'scrollW=' + de.scrollWidth,
+                    'overflowX=' + (de.scrollWidth > window.innerWidth + 1 ? 'YES' : 'no'),
+                    'cardW=' + w('.calculator-card'),
+                    'keyW=' + w('.key'),
+                    'memW=' + w('.memory-bar'),
+                    'drawerOpen=' + !q('#history-drawer').classList.contains('hidden'),
+                    'graphOpen=' + !q('#graph-panel').classList.contains('hidden'),
+                    'backdropShow=' + (q('.panel-backdrop') ? q('.panel-backdrop').classList.contains('show') : 'missing'),
+                    'noScroll=' + document.body.classList.contains('no-scroll'),
+                    'ariaExp=' + q('#btn-history-toggle').getAttribute('aria-expanded'),
+                    'canvas=' + q('#graph-canvas').width + 'x' + q('#graph-canvas').height
+                ].join(' | ');
+                const d = document.createElement('div');
+                d.id = 'probe-report';
+                d.textContent = '@@@PROBE ' + report + ' PROBE@@@';
+                document.body.appendChild(d);
+            }, 500);
+        }, 300);
+    });
+</script>

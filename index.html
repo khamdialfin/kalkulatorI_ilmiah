@@ -2,10 +2,30 @@
 <html lang="id" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Kalkulator Ilmiah Modern dengan UI/UX Glassmorphism Premium, kalkulasi presisi tinggi, riwayat perhitungan, dan pembuat grafik fungsi 2D interaktif.">
-    <meta name="keywords" content="kalkulator ilmiah, scientific calculator, web calculator, grafik fungsi, math calculator">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Kalkulator Ilmiah Modern dengan UI/UX Glassmorphism Premium, kalkulasi presisi tinggi, riwayat perhitungan, dan pembuat grafik fungsi 2D interaktif. Responsif untuk HP, tablet, dan desktop.">
+    <meta name="keywords" content="kalkulator ilmiah, scientific calculator, web calculator, grafik fungsi, math calculator, responsive">
+    <meta name="theme-color" content="#0a0d14">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Kalkulator Ilmiah">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
     <title>Kalkulator Ilmiah Pro — Visual & Presisi Tinggi</title>
+    <script>
+        /* Sinkronkan theme-color statis dengan tema tersimpan sebelum CSS dimuat (anti-flash) */
+        (function () {
+            try {
+                var saved = localStorage.getItem('kalkulator_theme');
+                if (saved) document.documentElement.setAttribute('data-theme', saved);
+                var dark = document.documentElement.getAttribute('data-theme') !== 'light';
+                var meta = document.querySelector('meta[name="theme-color"]');
+                if (meta) meta.setAttribute('content', dark ? '#0a0d14' : '#f1f5f9');
+            } catch (e) { /* localStorage tidak tersedia */ }
+        })();
+    </script>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -58,7 +78,7 @@
                 </button>
 
                 <!-- Graph View Toggle -->
-                <button type="button" id="btn-graph-toggle" class="header-pill-btn" title="Buka Pembuat Grafik Fungsi">
+                <button type="button" id="btn-graph-toggle" class="header-pill-btn" title="Buka Pembuat Grafik Fungsi" aria-controls="graph-panel" aria-expanded="false">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M3 3v18h18" />
                         <path d="m19 9-5 5-4-4-3 3" />
@@ -67,7 +87,7 @@
                 </button>
 
                 <!-- History Toggle -->
-                <button type="button" id="btn-history-toggle" class="header-pill-btn" title="Riwayat Perhitungan">
+                <button type="button" id="btn-history-toggle" class="header-pill-btn" title="Riwayat Perhitungan" aria-controls="history-drawer" aria-expanded="false">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10" />
                         <polyline points="12 6 12 12 16 14" />
@@ -208,7 +228,7 @@
             </section>
 
             <!-- Graphing Panel (Collapsible / Slideable) -->
-            <section id="graph-panel" class="graph-panel glass-panel hidden" aria-label="Visualisasi Grafik 2D">
+            <section id="graph-panel" class="graph-panel glass-panel sheet hidden" role="dialog" aria-label="Visualisasi Grafik 2D">
                 <div class="panel-header">
                     <div class="panel-title">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -249,7 +269,7 @@
             </section>
 
             <!-- History Drawer Panel -->
-            <aside id="history-drawer" class="history-drawer glass-panel hidden" aria-label="Riwayat Perhitungan">
+            <aside id="history-drawer" class="history-drawer glass-panel sheet hidden" role="dialog" aria-label="Riwayat Perhitungan">
                 <div class="drawer-header">
                     <div class="drawer-title">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

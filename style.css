@@ -120,18 +120,39 @@
     -webkit-tap-highlight-color: transparent;
 }
 
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
 body {
     font-family: var(--font-sans);
     background-color: var(--bg-base);
     color: var(--text-primary);
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     justify-content: center;
     align-items: center;
     overflow-x: hidden;
     position: relative;
     padding: 24px 16px;
+    padding-top: calc(24px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    padding-left: calc(16px + env(safe-area-inset-left, 0px));
+    padding-right: calc(16px + env(safe-area-inset-right, 0px));
     transition: background-color var(--transition-smooth), color var(--transition-smooth);
+}
+
+/* Tombol: hindari zoom ganda & highlight bawaan pada perangkat sentuh */
+button {
+    font-family: inherit;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body.no-scroll {
+    overflow: hidden;
 }
 
 /* Ambient Background Lights */
@@ -334,6 +355,7 @@ body {
 .calculator-card {
     flex: 1;
     max-width: 620px;
+    min-width: 0;
     padding: 24px;
     display: flex;
     flex-direction: column;
@@ -420,7 +442,7 @@ body {
 
 .expression-line {
     font-family: var(--font-mono);
-    font-size: 1.15rem;
+    font-size: clamp(1rem, 3.4vw, 1.15rem);
     color: var(--text-secondary);
     min-height: 28px;
     white-space: nowrap;
@@ -434,6 +456,7 @@ body {
     align-items: baseline;
     justify-content: flex-end;
     gap: 10px;
+    min-width: 0;
     overflow-x: auto;
     scrollbar-width: none;
 }
@@ -447,12 +470,13 @@ body {
 
 .result-line {
     font-family: var(--font-mono);
-    font-size: 2.5rem;
+    font-size: clamp(1.85rem, 7.4vw, 2.5rem);
     font-weight: 700;
     color: var(--text-primary);
     text-align: right;
     letter-spacing: -0.02em;
     white-space: nowrap;
+    min-width: 0;
     transition: transform var(--transition-fast);
 }
 
@@ -466,8 +490,9 @@ body {
    ========================================================================== */
 .memory-bar {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 8px;
+    min-width: 0;
 }
 
 .btn-mem {
@@ -506,13 +531,14 @@ body {
    ========================================================================== */
 .keypad-grid {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 10px;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: clamp(6px, 1.1vw, 10px);
 }
 
 .key {
     position: relative;
     height: 52px;
+    min-height: 44px;
     border-radius: var(--radius-md);
     border: 1px solid var(--border-subtle);
     font-family: var(--font-sans);
@@ -522,13 +548,19 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
     transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.key:hover {
-    transform: translateY(-2px);
-    border-color: var(--border-medium);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+/* Efek hover hanya untuk perangkat dengan kursor presisi (desktop) */
+@media (hover: hover) and (pointer: fine) {
+    .key:hover {
+        transform: translateY(-2px);
+        border-color: var(--border-medium);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
 }
 
 .key:active {
@@ -679,11 +711,12 @@ body {
 
 .input-group input {
     flex: 1;
+    min-width: 0;
     background: transparent;
     border: none;
     color: var(--text-primary);
     font-family: var(--font-mono);
-    font-size: 0.95rem;
+    font-size: max(16px, 0.95rem);
     outline: none;
 }
 
@@ -744,9 +777,10 @@ body {
 
 #graph-canvas {
     width: 100%;
-    height: 380px;
+    height: clamp(220px, 42vh, 380px);
     display: block;
     cursor: crosshair;
+    touch-action: none;
 }
 
 .graph-zoom-controls {
@@ -894,7 +928,7 @@ body {
    ========================================================================== */
 .toast {
     position: fixed;
-    bottom: 24px;
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
     left: 50%;
     transform: translateX(-50%) translateY(80px);
     background: rgba(18, 24, 38, 0.95);
@@ -925,42 +959,350 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* ==========================================================================
+   PANEL BACKDROP (tablet & HP — panel tampil sebagai sheet modal)
+   ========================================================================== */
+.panel-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(3, 7, 18, 0.62);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    z-index: 190;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-smooth);
+}
+
+.panel-backdrop.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* ==========================================================================
+   TABLET & KE BAWAH (<= 1024px) — layout satu kolom, panel jadi sheet
+   ========================================================================== */
 @media (max-width: 1024px) {
+    body {
+        align-items: flex-start;
+        padding: 16px;
+        padding-top: calc(16px + env(safe-area-inset-top, 0px));
+        padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+        padding-left: calc(16px + env(safe-area-inset-left, 0px));
+        padding-right: calc(16px + env(safe-area-inset-right, 0px));
+    }
+
+    .app-wrapper {
+        gap: 14px;
+    }
+
     .main-layout {
         flex-direction: column;
-        align-items: center;
+        align-items: stretch;
     }
-    .calculator-card, .graph-panel, .history-drawer {
-        max-width: 100%;
+
+    .calculator-card {
         width: 100%;
+        max-width: 720px;
+        margin: 0 auto;
+    }
+
+    .key {
+        height: clamp(50px, 7.6vw, 60px);
+        font-size: 1.08rem;
+    }
+
+    /* Panel Grafik & Riwayat menjadi sheet modal yang bisa di-scroll */
+    .sheet {
+        position: fixed;
+        inset: 0;
+        margin: auto;
+        z-index: 200;
+        flex: none;
+        width: calc(100vw - 32px);
+        max-width: 720px;
+        height: max-content;
+        max-height: 88dvh;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        animation: sheetIn 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .sheet .history-list {
+        max-height: none;
+        flex: 1;
+        min-height: 0;
+        padding-right: 2px;
     }
 }
 
-@media (max-width: 580px) {
+/* ==========================================================================
+   HP / PONSEL (<= 640px) — sheet dari bawah (bottom sheet) + tombol compact
+   ========================================================================== */
+@media (max-width: 640px) {
+    .sheet {
+        inset: auto 0 0 0;
+        margin: 0;
+        width: 100%;
+        max-width: 100%;
+        border-radius: 26px 26px 0 0;
+        padding: 16px 16px calc(18px + env(safe-area-inset-bottom, 0px));
+        max-height: 88dvh;
+    }
+
+    /* Handle visual bottom sheet */
+    .sheet::before {
+        content: '';
+        display: block;
+        width: 46px;
+        height: 4px;
+        margin: 0 auto 12px;
+        border-radius: 99px;
+        background: var(--border-medium);
+    }
+
     body {
-        padding: 12px 8px;
+        padding: 10px;
+        padding-top: calc(10px + env(safe-area-inset-top, 0px));
+        padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+        padding-left: calc(10px + env(safe-area-inset-left, 0px));
+        padding-right: calc(10px + env(safe-area-inset-right, 0px));
     }
-    .calculator-card {
-        padding: 16px;
-    }
-    .keypad-grid {
-        grid-template-columns: repeat(5, 1fr);
-        gap: 6px;
-    }
-    .key {
-        height: 46px;
-        font-size: 0.92rem;
-    }
-    .result-line {
-        font-size: 2rem;
-    }
+
     .app-header {
-        padding: 10px 14px;
+        padding: 10px 12px;
+        flex-wrap: wrap;
+        gap: 10px;
+        border-radius: var(--radius-md);
     }
+
+    .logo-group {
+        gap: 10px;
+        min-width: 0;
+    }
+
+    .logo-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+    }
+
+    .logo-icon svg {
+        width: 20px;
+        height: 20px;
+    }
+
     .app-title {
-        font-size: 1.05rem;
+        font-size: 1rem;
     }
+
+    .app-subtitle {
+        font-size: 0.7rem;
+    }
+
+    .header-actions {
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        margin-left: auto;
+    }
+
+    .icon-btn {
+        width: 38px;
+        height: 38px;
+    }
+
+    .header-pill-btn {
+        height: 38px;
+        padding: 0 12px;
+        font-size: 0.82rem;
+    }
+
     .header-pill-btn span {
         display: none;
+    }
+
+    .calculator-card {
+        padding: 16px;
+        gap: 14px;
+        border-radius: var(--radius-lg);
+    }
+
+    .display-container {
+        padding: 12px 14px;
+        gap: 8px;
+        border-radius: var(--radius-md);
+    }
+
+    .keypad-grid {
+        gap: 6px;
+    }
+
+    .key {
+        height: clamp(46px, 12vw, 56px);
+        font-size: 0.92rem;
+        border-radius: 12px;
+    }
+
+    .key-num {
+        font-size: 1.1rem;
+    }
+
+    .key-op {
+        font-size: 1.2rem;
+    }
+
+    .key-equals {
+        font-size: 1.4rem;
+    }
+
+    .card-footer {
+        display: none;
+    }
+
+    .graph-zoom-controls button {
+        width: 40px;
+        height: 40px;
+    }
+
+    .toast {
+        max-width: calc(100vw - 32px);
+        text-align: center;
+        bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    }
+}
+
+/* ==========================================================================
+   HP LANDSCAPE (tinggi terbatas) — kompak agar tidak perlu scroll
+   ========================================================================== */
+@media (orientation: landscape) and (max-height: 560px) {
+    .key {
+        height: clamp(34px, 7.2vh, 44px);
+        font-size: 0.85rem;
+    }
+
+    .key-num {
+        font-size: 1rem;
+    }
+
+    .display-container {
+        padding: 8px 12px;
+        gap: 4px;
+    }
+
+    .calculator-card {
+        padding: 12px;
+        gap: 10px;
+    }
+
+    .expression-line {
+        font-size: 0.95rem;
+        min-height: 20px;
+    }
+
+    .result-line {
+        font-size: clamp(1.4rem, 4.4vh, 1.9rem);
+    }
+
+    .app-subtitle {
+        display: none;
+    }
+
+    .sheet {
+        max-height: 94dvh;
+    }
+}
+
+/* ==========================================================================
+   HP LAYAR KECIL (<= 400px) — misal iPhone SE / Android 5"
+   ========================================================================== */
+@media (max-width: 400px) {
+    .app-subtitle {
+        display: none;
+    }
+
+    .app-title {
+        font-size: 0.95rem;
+    }
+
+    .calculator-card {
+        padding: 12px;
+        gap: 12px;
+    }
+
+    .memory-bar {
+        gap: 5px;
+    }
+
+    .btn-mem {
+        font-size: 0.68rem;
+        padding: 6px 2px;
+    }
+
+    .btn-mem span {
+        display: none;
+    }
+
+    .key {
+        font-size: 0.82rem;
+        border-radius: 10px;
+    }
+
+    .key-num {
+        font-size: 1rem;
+    }
+
+    .key-fn {
+        font-size: 0.78rem;
+    }
+
+    .key-equals {
+        font-size: 1.25rem;
+    }
+
+    .mode-tag {
+        padding: 4px 8px;
+        font-size: 0.68rem;
+    }
+
+    .indicator-badge {
+        font-size: 0.62rem;
+        padding: 2px 5px;
+    }
+}
+
+/* ==========================================================================
+   PERANGKAT SENTUH & PREFERENSI MOTION
+   ========================================================================== */
+@media (max-width: 768px) {
+    .ambient-glow {
+        opacity: 0.4;
+        filter: blur(90px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+    }
+
+    .ambient-glow {
+        animation: none !important;
+    }
+}
+
+@keyframes sheetIn {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
     }
 }

@@ -69,6 +69,59 @@
 
     const toastEl = document.getElementById('toast');
 
+    // --- Panel / Sheet helper (backdrop, scroll-lock, aria state) ---
+    const backdropEl = document.createElement('div');
+    backdropEl.className = 'panel-backdrop';
+    document.body.appendChild(backdropEl);
+
+    const sheetMedia = window.matchMedia('(max-width: 1024px)');
+
+    function isPanelOpen(panel) {
+        return !panel.classList.contains('hidden');
+    }
+
+    function syncPanelState() {
+        const graphOpen = isPanelOpen(graphPanel);
+        const historyOpen = isPanelOpen(historyDrawer);
+        btnGraphToggle.setAttribute('aria-expanded', String(graphOpen));
+        btnHistoryToggle.setAttribute('aria-expanded', String(historyOpen));
+
+        if (!sheetMedia.matches) {
+            backdropEl.classList.remove('show');
+            document.body.classList.remove('no-scroll');
+            return;
+        }
+
+        const anyOpen = graphOpen || historyOpen;
+        backdropEl.classList.toggle('show', anyOpen);
+        document.body.classList.toggle('no-scroll', anyOpen);
+    }
+
+    function openPanel(panel) {
+        const other = panel === graphPanel ? historyDrawer : graphPanel;
+        other.classList.add('hidden');
+        panel.classList.remove('hidden');
+        syncPanelState();
+    }
+
+    function closePanel(panel) {
+        panel.classList.add('hidden');
+        syncPanelState();
+    }
+
+    function closeAllPanels() {
+        graphPanel.classList.add('hidden');
+        historyDrawer.classList.add('hidden');
+        syncPanelState();
+    }
+
+    backdropEl.addEventListener('click', closeAllPanels);
+    if (typeof sheetMedia.addEventListener === 'function') {
+        sheetMedia.addEventListener('change', syncPanelState);
+    } else if (typeof sheetMedia.addListener === 'function') {
+        sheetMedia.addListener(syncPanelState);
+    }
+
     // Graph elements
     const graphCanvas = document.getElementById('graph-canvas');
     const fnInput = document.getElementById('function-input');
@@ -472,7 +525,7 @@
                 const expr = decodeURIComponent(el.getAttribute('data-expr'));
                 expression = expr;
                 updateDisplay();
-                historyDrawer.classList.add('hidden');
+                closePanel(historyDrawer);
                 showToast('Ekspresi dimuat ulang');
             });
         });
@@ -533,6 +586,12 @@
     });
 
     // --- Theme Toggle ---
+    function syncThemeColor() {
+        const dark = document.documentElement.getAttribute('data-theme') !== 'light';
+        const meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', dark ? '#0a0d14' : '#f1f5f9');
+    }
+
     btnThemeToggle.addEventListener('click', () => {
         const html = document.documentElement;
         const isDark = html.getAttribute('data-theme') === 'dark';
@@ -543,33 +602,34 @@
         try {
             localStorage.setItem('kalkulator_theme', nextTheme);
         } catch {}
+        syncThemeColor();
         drawGraph();
     });
 
-    // --- Panel Toggles ---
+    // --- Panel Toggles (sheet modal pada tablet & HP) ---
     btnGraphToggle.addEventListener('click', () => {
-        const willShow = graphPanel.classList.contains('hidden');
-        graphPanel.classList.toggle('hidden', !willShow);
-        if (willShow) {
-            historyDrawer.classList.add('hidden');
-            setTimeout(drawGraph, 50);
+        if (isPanelOpen(graphPanel)) {
+            closePanel(graphPanel);
+            return;
         }
+        openPanel(graphPanel);
+        setTimeout(resizeCanvas, 60);
     });
 
     btnCloseGraph.addEventListener('click', () => {
-        graphPanel.classList.add('hidden');
+        closePanel(graphPanel);
     });
 
     btnHistoryToggle.addEventListener('click', () => {
-        const willShow = historyDrawer.classList.contains('hidden');
-        historyDrawer.classList.toggle('hidden', !willShow);
-        if (willShow) {
-            graphPanel.classList.add('hidden');
+        if (isPanelOpen(historyDrawer)) {
+            closePanel(historyDrawer);
+            return;
         }
+        openPanel(historyDrawer);
     });
 
     btnCloseHistory.addEventListener('click', () => {
-        historyDrawer.classList.add('hidden');
+        closePanel(historyDrawer);
     });
 
     btnClearHistory.addEventListener('click', () => {
@@ -589,19 +649,27 @@
 
     function resizeCanvas() {
         if (!graphCanvas) return;
-        const rect = graphCanvas.parentElement.getBoundingClientRect();
-        if (rect.width > 0) {
-            graphCanvas.width = rect.width;
-            graphCanvas.height = 380;
-            drawGraph();
+        const rect = graphCanvas.getBoundingClientRect();
+        const cssWidth = Math.max(1, Math.round(rect.width));
+        const cssHeight = Math.max(1, Math.round(rect.height));
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const backingWidth = Math.round(cssWidth * dpr);
+        const backingHeight = Math.round(cssHeight * dpr);
+        if (graphCanvas.width !== backingWidth || graphCanvas.height !== backingHeight) {
+            graphCanvas.width = backingWidth;
+            graphCanvas.height = backingHeight;
         }
+        drawGraph();
     }
 
     function drawGraph() {
         if (!graphCanvas || graphPanel.classList.contains('hidden')) return;
         const ctx = graphCanvas.getContext('2d');
-        const w = graphCanvas.width;
-        const h = graphCanvas.height;
+        const rect = graphCanvas.getBoundingClientRect();
+        const w = Math.max(1, Math.round(rect.width));
+        const h = Math.max(1, Math.round(rect.height));
+        const dpr = graphCanvas.width / Math.max(1, graphCanvas.clientWidth) || 1;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         const originX = w / 2 + graphOffsetX;
         const originY = h / 2 + graphOffsetY;
 
@@ -721,6 +789,23 @@
         ctx.shadowBlur = 0;
     }
 
+    // Update badge koordinat kursor (CSS pixel space agar tetap akurat di semua ukuran/DPR)
+    function updateCoords(clientX, clientY) {
+        if (!graphCoords) return;
+        const rect = graphCanvas.getBoundingClientRect();
+        const originX = rect.width / 2 + graphOffsetX;
+        const originY = rect.height / 2 + graphOffsetY;
+        const curX = ((clientX - rect.left - originX) / graphScale).toFixed(2);
+        const curY = ((originY - (clientY - rect.top)) / graphScale).toFixed(2);
+        graphCoords.textContent = `x: ${curX}, y: ${curY}`;
+    }
+
+    function touchDistance(touches) {
+        const dx = touches[0].clientX - touches[1].clientX;
+        const dy = touches[0].clientY - touches[1].clientY;
+        return Math.hypot(dx, dy);
+    }
+
     // Graph interactions (Zoom, Pan, Mouse Move)
     if (graphCanvas) {
         graphCanvas.addEventListener('mousedown', (e) => {
@@ -732,22 +817,12 @@
         window.addEventListener('mouseup', () => { isDragging = false; });
 
         graphCanvas.addEventListener('mousemove', (e) => {
-            const rect = graphCanvas.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
-
             if (isDragging) {
                 graphOffsetX = e.clientX - dragStartX;
                 graphOffsetY = e.clientY - dragStartY;
                 drawGraph();
             }
-
-            // Update coordinate badge
-            const originX = graphCanvas.width / 2 + graphOffsetX;
-            const originY = graphCanvas.height / 2 + graphOffsetY;
-            const curX = ((mouseX - originX) / graphScale).toFixed(2);
-            const curY = ((originY - mouseY) / graphScale).toFixed(2);
-            graphCoords.textContent = `x: ${curX}, y: ${curY}`;
+            updateCoords(e.clientX, e.clientY);
         });
 
         graphCanvas.addEventListener('wheel', (e) => {
@@ -756,6 +831,47 @@
             graphScale = Math.min(Math.max(graphScale * zoomFactor, 10), 200);
             drawGraph();
         }, { passive: false });
+
+        // --- Dukungan Sentuh: geser 1 jari (pan) & cubit 2 jari (pinch zoom) ---
+        let pinchStartDist = 0;
+        let pinchStartScale = graphScale;
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        graphCanvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                touchStartX = e.touches[0].clientX - graphOffsetX;
+                touchStartY = e.touches[0].clientY - graphOffsetY;
+                updateCoords(e.touches[0].clientX, e.touches[0].clientY);
+            } else if (e.touches.length === 2) {
+                isDragging = false;
+                pinchStartDist = touchDistance(e.touches);
+                pinchStartScale = graphScale;
+            }
+        }, { passive: true });
+
+        graphCanvas.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 1 && isDragging) {
+                e.preventDefault();
+                graphOffsetX = e.touches[0].clientX - touchStartX;
+                graphOffsetY = e.touches[0].clientY - touchStartY;
+                drawGraph();
+                updateCoords(e.touches[0].clientX, e.touches[0].clientY);
+            } else if (e.touches.length === 2) {
+                e.preventDefault();
+                const dist = touchDistance(e.touches);
+                if (pinchStartDist > 0) {
+                    graphScale = Math.min(Math.max(pinchStartScale * (dist / pinchStartDist), 10), 200);
+                    drawGraph();
+                }
+            }
+        }, { passive: false });
+
+        graphCanvas.addEventListener('touchend', () => {
+            isDragging = false;
+            pinchStartDist = 0;
+        });
     }
 
     btnZoomIn.addEventListener('click', () => {
@@ -821,12 +937,31 @@
             backspace();
         } else if (key === 'Escape') {
             e.preventDefault();
-            clearExpression();
+            if (isPanelOpen(graphPanel) || isPanelOpen(historyDrawer)) {
+                closeAllPanels();
+            } else {
+                clearExpression();
+            }
         }
     });
 
     // --- Init ---
-    window.addEventListener('resize', resizeCanvas);
+    let resizeRaf = null;
+    function scheduleCanvasResize() {
+        if (resizeRaf) cancelAnimationFrame(resizeRaf);
+        resizeRaf = requestAnimationFrame(() => {
+            resizeRaf = null;
+            resizeCanvas();
+        });
+    }
+
+    window.addEventListener('resize', scheduleCanvasResize);
+    window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 200));
+
+    if (graphCanvas && typeof ResizeObserver === 'function') {
+        new ResizeObserver(scheduleCanvasResize).observe(graphCanvas.parentElement);
+    }
+
     try {
         const savedTheme = localStorage.getItem('kalkulator_theme');
         if (savedTheme) {
@@ -838,4 +973,7 @@
 
     loadHistory();
     updateDisplay('0');
+    syncThemeColor();
+    syncPanelState();
+    resizeCanvas();
 })();
