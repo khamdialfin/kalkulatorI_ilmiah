@@ -1,0 +1,3 @@
+@echo off
+echo Membuka Kalkulator Ilmiah Pro di browser default...
+start "" "index.html"

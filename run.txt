@@ -1,0 +1,27 @@
+
+=== KALKULATOR ILMIAH ===
+Operator : + - * / % ^ ( )
+Fungsi   : sin cos tan asin acos atan sqrt ln log exp abs fact
+Konstanta: pi e ans (hasil terakhir)
+Perintah : mode deg | mode rad | history | help | exit
+Contoh   : 2*(3+4)^2 , sin(30) , sqrt(16)+ans , fact(5)
+
+[DEG] > = 98
+[DEG] > = 0.5
+[DEG] > = 4.5
+[DEG] > = 120
+[DEG] > = 2
+[DEG] > = 2
+[DEG] > = 1024
+[DEG] > Mode sudut: radian
+[RAD] > = 1
+[RAD] > Error: Pembagian dengan nol
+[RAD] > 1. 2*(3+4)^2 = 98
+2. sin(30) = 0.5
+3. sqrt(16)+ans = 4.5
+4. fact(5) = 120
+5. 5%3 = 2
+6. log(100) = 2
+7. 2^10 = 1024
+8. sin(pi/2) = 1
+[RAD] > Sampai jumpa!

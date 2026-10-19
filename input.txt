@@ -1,0 +1,12 @@
+2*(3+4)^2
+sin(30)
+sqrt(16)+ans
+fact(5)
+5%3
+log(100)
+2^10
+mode rad
+sin(pi/2)
+1/0
+history
+exit
